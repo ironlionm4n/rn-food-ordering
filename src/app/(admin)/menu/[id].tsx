@@ -15,8 +15,6 @@ import {
   Pressable,
 } from "react-native";
 
-const sizes: PizzaSize[] = ["S", "M", "L", "XL"];
-
 const ProductDetailsScreen = () => {
   const { id } = useLocalSearchParams();
   const router = useRouter();
@@ -58,37 +56,41 @@ const ProductDetailsScreen = () => {
         source={{ uri: product.image || defaultImage }}
         style={styles.image}
       />
-      <View>
-        <Text style={styles.text}>Select Size</Text>
-        <View style={styles.sizeSelector}>
-          {sizes.map((size) => (
-            <Pressable
-              key={size}
-              onPress={() => setSelectedSize(size)}
-              style={[
-                styles.size,
-                {
-                  backgroundColor:
-                    selectedSize === size ? Colors.light.tint : "white",
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.sizeText,
-                  { color: selectedSize === size ? "white" : "black" },
-                ]}
-              >
-                {size}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
+
       <View style={styles.productDetails}>
         <Text style={styles.text}>{product?.name} Pizza</Text>
-        <Text style={styles.price}>${selectedPrice}</Text>
-        <Button text="Add to Cart" onPress={addToCart} />
+
+        <View
+          style={{
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 10,
+            padding: 10,
+          }}
+        >
+          {Object.keys(product.prices).map((size) => {
+            return (
+              <View
+                style={{
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderColor: "white",
+                  borderWidth: 2,
+                  padding: 10,
+                  borderRadius: 5,
+                }}
+              >
+                <Text style={{ color: "white", fontSize: 24 }}>
+                  Size: {size}
+                </Text>
+                <Text style={{ color: "white", fontSize: 24 }}>
+                  Has Price ${product.prices[size as PizzaSize].toFixed(2)}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
       </View>
     </View>
   );
@@ -98,19 +100,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "space-evenly",
   },
   text: {
-    fontSize: 24,
+    fontSize: 32,
     color: "white",
   },
   price: {
-    fontSize: 24,
+    fontSize: 28,
+    fontWeight: "700",
     color: Colors.light.tint,
     marginTop: 8,
   },
   image: {
-    width: "90%",
+    width: "66%",
     aspectRatio: 1,
     resizeMode: "contain",
   },
@@ -119,7 +122,6 @@ const styles = StyleSheet.create({
     padding: 16,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: "auto",
   },
   size: {
     backgroundColor: "gainsboro",

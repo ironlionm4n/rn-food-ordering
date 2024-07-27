@@ -48,7 +48,7 @@ const CartScreen = () => {
       />
       {/* Use a light status bar on iOS to account for the black space above the modal */}
       <StatusBar style={Platform.OS === "ios" ? "light" : "auto"} />
-      <Text style={styles.total}>Total: ${total}</Text>
+      <Text style={styles.total}>Total: ${total.toFixed(2)}</Text>
       <Button text="Checkout" />
     </View>
   );
