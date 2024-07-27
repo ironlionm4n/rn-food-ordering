@@ -2,7 +2,7 @@ export type Product = {
   id: number;
   image: string | null;
   name: string;
-  price: number;
+  prices: Record<PizzaSize, number>;
 };
 
 export type PizzaSize = "S" | "M" | "L" | "XL";
@@ -11,6 +11,7 @@ export type CartItem = {
   id: string;
   product: Product;
   size: PizzaSize;
+  price: number;
   quantity: number;
 };
 

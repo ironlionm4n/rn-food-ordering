@@ -54,7 +54,7 @@ export default function CartProvider({ children }: PropsWithChildren) {
   };
 
   const total = items.reduce((accu, item) => {
-    return accu + item.product.price * item.quantity;
+    return accu + item.price * item.quantity;
   }, 0);
 
   return (

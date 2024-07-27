@@ -2,7 +2,7 @@ import { useCart } from "@/app/providers/CartProvider";
 import Button from "@/components/Button";
 import Colors from "@/constants/Colors";
 import { PizzaSize, Product } from "@/types";
-import products from "@assets/data/products";
+import products, { defaultImage } from "@assets/data/products";
 import { randomUUID } from "expo-crypto";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -33,11 +33,14 @@ const ProductDetailsScreen = () => {
     );
   }
 
+  const selectedPrice = product.prices[selectedSize];
+
   const addToCart = () => {
     onAddItem({
       id: randomUUID(),
       product: product,
       size: selectedSize,
+      price: selectedPrice || 0,
       quantity: 1,
     });
 
@@ -51,7 +54,10 @@ const ProductDetailsScreen = () => {
           title: product?.name,
         }}
       />
-      <Image source={{ uri: product.image }} style={styles.image} />
+      <Image
+        source={{ uri: product.image || defaultImage }}
+        style={styles.image}
+      />
       <View>
         <Text style={styles.text}>Select Size</Text>
         <View style={styles.sizeSelector}>
@@ -81,7 +87,7 @@ const ProductDetailsScreen = () => {
       </View>
       <View style={styles.productDetails}>
         <Text style={styles.text}>{product?.name} Pizza</Text>
-        <Text style={styles.price}>${product?.price}</Text>
+        <Text style={styles.price}>${selectedPrice}</Text>
         <Button text="Add to Cart" onPress={addToCart} />
       </View>
     </View>

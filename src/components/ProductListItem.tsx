@@ -5,7 +5,7 @@ import { Link } from "expo-router";
 
 import products, { defaultImage } from "@assets/data/products";
 import Colors from "@/constants/Colors";
-import { Product } from "@/types";
+import { PizzaSize, Product } from "@/types";
 
 type ProductListItemProps = {
   product: Product;
@@ -23,7 +23,11 @@ const ProductListItem = ({ product }: ProductListItemProps) => {
         />
         <View style={styles.productDetails}>
           <Text style={styles.name}>{product.name}</Text>
-          <Text style={styles.price}>${product.price}</Text>
+          {Object.keys(product.prices).map((size) => (
+            <Text key={size} style={styles.price}>
+              {size}: ${product.prices[size as PizzaSize].toFixed(2)}
+            </Text>
+          ))}
         </View>
       </Pressable>
     </Link>
