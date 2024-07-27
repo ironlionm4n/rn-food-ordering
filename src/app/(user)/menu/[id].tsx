@@ -2,7 +2,7 @@ import { useCart } from "@/app/providers/CartProvider";
 import Button from "@/components/Button";
 import Colors from "@/constants/Colors";
 import { PizzaSize, Product } from "@/types";
-import products, { defaultImage } from "@assets/data/products";
+import products, { defaultImage, sizes } from "@assets/data/products";
 import { randomUUID } from "expo-crypto";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -14,8 +14,6 @@ import {
   TouchableOpacity,
   Pressable,
 } from "react-native";
-
-const sizes: PizzaSize[] = ["S", "M", "L", "XL"];
 
 const ProductDetailsScreen = () => {
   const { id } = useLocalSearchParams();

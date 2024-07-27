@@ -1,4 +1,6 @@
-import { Product } from "@/types";
+import { PizzaSize, Product } from "@/types";
+
+export const sizes: PizzaSize[] = ["S", "M", "L", "XL"];
 
 const products: Product[] = [
   {
