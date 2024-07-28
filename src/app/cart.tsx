@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import React from "react";
 import { StatusBar } from "expo-status-bar";
-import { useCart } from "./providers/CartProvider";
+import { useCart } from "../providers/CartProvider";
 import { defaultImage } from "@assets/data/products";
 import Colors from "@/constants/Colors";
 import Button from "@/components/Button";

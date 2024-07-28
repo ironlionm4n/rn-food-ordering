@@ -1,4 +1,4 @@
-import { useCart } from "@/app/providers/CartProvider";
+import { useCart } from "@/providers/CartProvider";
 import { CartItem } from "@/types";
 import { defaultImage } from "@assets/data/products";
 import { Image, View, StyleSheet, Text } from "react-native";

@@ -1,4 +1,4 @@
-import { useCart } from "@/app/providers/CartProvider";
+import { useCart } from "@/providers/CartProvider";
 import Button from "@/components/Button";
 import Colors from "@/constants/Colors";
 import { PizzaSize, Product } from "@/types";
