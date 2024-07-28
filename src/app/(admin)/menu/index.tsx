@@ -7,7 +7,9 @@ export default function TabOneScreen() {
   return (
     <FlatList
       data={products}
-      renderItem={({ item }) => <ProductListItem product={item} />}
+      renderItem={({ item }) => (
+        <ProductListItem product={item} key={item.id} />
+      )}
       numColumns={2}
       contentContainerStyle={{
         gap: 10,

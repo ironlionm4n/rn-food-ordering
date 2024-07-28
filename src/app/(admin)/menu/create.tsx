@@ -1,7 +1,10 @@
 import {
+  Alert,
   Image,
   Keyboard,
+  KeyboardAvoidingView,
   NativeSyntheticEvent,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -19,7 +22,7 @@ import { formatDecimalInput } from "@/utility/helpers";
 import Colors from "@/constants/Colors";
 import Toast from "@/components/Toast";
 import * as ImagePicker from "expo-image-picker";
-import { Stack } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 
 type SizePriceState = {
   S: string;
@@ -61,6 +64,12 @@ const initialSizeState: SizePriceState = {
 };
 
 const CreateProductScreen = () => {
+  const { id } = useLocalSearchParams();
+
+  console.log("ID:", id);
+
+  const isUpdating = !!id;
+
   const [name, setName] = React.useState("");
   const [errors, setErrors] = React.useState<string>("");
   const [showToast, setShowToast] = React.useState<boolean>(false);
@@ -96,6 +105,48 @@ const CreateProductScreen = () => {
       image: pizzaImage || defaultImage,
       prices: numericPrices,
     });
+  };
+
+  const onSubmit = () => {
+    if (isUpdating) {
+      console.log("Updating Product");
+    } else {
+      onCreate();
+    }
+  };
+
+  const onUpdate = () => {
+    if (!validateForm()) {
+      console.log("Form is invalid", errors);
+      setShowToast(true);
+      clearTimeout(toastRef.current as NodeJS.Timeout);
+      toastRef.current = setTimeout(() => {
+        setShowToast(false);
+        setErrors("");
+      }, 3000);
+      return;
+    }
+
+    // Convert the prices to numbers when needed
+    const numericPrices = {
+      S: parseFloat(sizePrices.S) || 0,
+      M: parseFloat(sizePrices.M) || 0,
+      L: parseFloat(sizePrices.L) || 0,
+      XL: parseFloat(sizePrices.XL) || 0,
+    };
+
+    const productIndex = products.findIndex((p) => p.id === Number(id));
+    if (productIndex === -1) {
+      console.log("Product not found");
+      return;
+    }
+
+    products[productIndex] = {
+      id: Number(id),
+      name: name,
+      image: pizzaImage || defaultImage,
+      prices: numericPrices,
+    };
   };
 
   const validateForm = () => {
@@ -140,6 +191,29 @@ const CreateProductScreen = () => {
     }
   };
 
+  const confirmDelete = () => {
+    Alert.alert(
+      "Delete Product",
+      "Are you sure you want to delete this product?",
+      [
+        {
+          text: "Cancel",
+        },
+        { text: "Delete", onPress: handleDelete, style: "destructive" },
+      ]
+    );
+  };
+
+  const handleDelete = () => {
+    const productIndex = products.findIndex((p) => p.id === Number(id));
+    if (productIndex === -1) {
+      console.log("Product not found");
+      return;
+    }
+
+    products.splice(productIndex, 1);
+  };
+
   useEffect(() => {
     return () => {
       if (toastRef.current) {
@@ -151,7 +225,11 @@ const CreateProductScreen = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
-        <Stack.Screen options={{ title: "Create Product" }} />
+        <Stack.Screen
+          options={{
+            title: isUpdating ? "Update Product" : "Create Product",
+          }}
+        />
         <Toast visible={showToast} message={errors} />
         <Image
           source={{ uri: pizzaImage || defaultImage }}
@@ -160,7 +238,7 @@ const CreateProductScreen = () => {
         <TouchableOpacity
           style={{
             backgroundColor: Colors.light.tint,
-            paddingVertical: 8,
+            paddingVertical: 4,
             paddingHorizontal: 16,
             borderRadius: 5,
           }}
@@ -169,13 +247,14 @@ const CreateProductScreen = () => {
           <Text
             style={{
               color: "white",
-              fontSize: 22,
+              fontSize: 18,
               fontWeight: "bold",
             }}
           >
             Select an Image
           </Text>
         </TouchableOpacity>
+
         <View style={styles.inputContainer}>
           <Text style={styles.text}>Pizza Name</Text>
           <TextInput
@@ -184,14 +263,12 @@ const CreateProductScreen = () => {
             onChangeText={handleNameChange}
             value={name}
           />
-        </View>
-        <View style={styles.inputContainer}>
           <Text style={styles.text}>Sizes and Prices</Text>
           <View style={styles.sizeRowContainer}>
             {sizes.map((size, index) => {
               return (
                 <View key={index} style={styles.sizeInputContainer}>
-                  <Text style={{ fontSize: 24 }}>Size: {size}</Text>
+                  <Text style={{ fontSize: 16 }}>Size: {size}</Text>
                   <TextInput
                     keyboardType="decimal-pad"
                     style={styles.numericInput}
@@ -208,7 +285,10 @@ const CreateProductScreen = () => {
             })}
           </View>
         </View>
-        <Button text="Create" onPress={onCreate} />
+        <Button text={isUpdating ? "Update" : "Create"} onPress={onSubmit} />
+        {isUpdating && (
+          <Button text="Delete" onPress={confirmDelete} type="delete" />
+        )}
       </View>
     </TouchableWithoutFeedback>
   );
@@ -219,21 +299,25 @@ export default CreateProductScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-start",
     alignItems: "center",
-    gap: 20,
-    margin: 6,
+    gap: 5,
+    margin: 8,
   },
   inputContainer: {
     width: "100%",
     backgroundColor: "lightgrey",
     padding: 8,
     borderRadius: 5,
+    gap: 8,
   },
   sizeRowContainer: {
     justifyContent: "space-between",
     alignItems: "center",
     flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    padding: 8,
   },
   sizeInputContainer: {
     backgroundColor: "white",
@@ -244,16 +328,16 @@ const styles = StyleSheet.create({
     borderColor: "black",
     borderWidth: 2,
     borderRadius: 5,
+    width: "45%",
   },
   text: {
     color: "black",
     fontWeight: "bold",
-    fontSize: 24,
-    marginBottom: 12,
+    fontSize: 16,
   },
   textInput: {
     backgroundColor: "white",
-    padding: 10,
+    padding: 6,
     borderRadius: 5,
     color: "black",
     fontSize: 20,
@@ -263,7 +347,7 @@ const styles = StyleSheet.create({
     padding: 5,
     borderRadius: 5,
     color: "white",
-    fontSize: 18,
+    fontSize: 16,
     backgroundColor: Colors.light.tint,
     fontWeight: "600",
     textAlign: "center",
@@ -271,6 +355,7 @@ const styles = StyleSheet.create({
   pizzaImage: {
     width: "50%",
     aspectRatio: 1,
-    backgroundColor: "white",
+    backgroundColor: "lightgrey",
+    borderRadius: 10,
   },
 });
