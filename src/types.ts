@@ -5,6 +5,12 @@ export type Product = {
   prices: Record<PizzaSize, number>;
 };
 
+export type ProductAPI = {
+  name: string;
+  image: string;
+  prices: Record<PizzaSize, number>;
+};
+
 export type PizzaSize = "S" | "M" | "L" | "XL";
 
 export type CartItem = {

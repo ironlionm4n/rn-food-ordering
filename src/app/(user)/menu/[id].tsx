@@ -2,7 +2,7 @@ import { useCart } from "@/providers/CartProvider";
 import Button from "@/components/Button";
 import Colors from "@/constants/Colors";
 import { PizzaSize, Product } from "@/types";
-import products, { defaultImage, sizes } from "@assets/data/products";
+import { defaultImage, sizes } from "@assets/data/products";
 import { randomUUID } from "expo-crypto";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -13,17 +13,24 @@ import {
   Image,
   TouchableOpacity,
   Pressable,
+  ActivityIndicator,
 } from "react-native";
+import { useProduct } from "@/api/products";
+import { convertIdStringToFloat } from "@/utility/helpers";
 
 const ProductDetailsScreen = () => {
-  const { id } = useLocalSearchParams();
+  const { id: idString } = useLocalSearchParams();
+  const id = convertIdStringToFloat(idString);
   const router = useRouter();
   const [selectedSize, setSelectedSize] = useState<PizzaSize>("M");
   const { onAddItem } = useCart();
+  const { data: product, error, isLoading } = useProduct(id);
 
-  const product = products.find((p) => p.id === Number(id));
+  if (isLoading) {
+    return <ActivityIndicator />;
+  }
 
-  if (!product) {
+  if (error) {
     return (
       <View style={styles.container}>
         <Text style={styles.text}>Product not found</Text>

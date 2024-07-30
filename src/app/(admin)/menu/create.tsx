@@ -18,11 +18,17 @@ import React, { Reducer, useEffect, useRef } from "react";
 import products, { defaultImage, sizes } from "@assets/data/products";
 import Button from "@/components/Button";
 import { PizzaSize } from "@/types";
-import { formatDecimalInput } from "@/utility/helpers";
+import { convertIdStringToFloat, formatDecimalInput } from "@/utility/helpers";
 import Colors from "@/constants/Colors";
 import Toast from "@/components/Toast";
 import * as ImagePicker from "expo-image-picker";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import {
+  useDeleteProduct,
+  useInsertProduct,
+  useProduct,
+  useUpdateProduct,
+} from "@/api/products";
 
 type SizePriceState = {
   S: string;
@@ -42,13 +48,10 @@ const sizePriceReducer: Reducer<SizePriceState, SizePriceAction> = (
 ) => {
   switch (action.type) {
     case "S":
-      return { ...state, S: action.payload };
     case "M":
-      return { ...state, M: action.payload };
     case "L":
-      return { ...state, L: action.payload };
     case "XL":
-      return { ...state, XL: action.payload };
+      return { ...state, [action.type]: action.payload };
     case "reset":
       return initialSizeState;
     default:
@@ -64,9 +67,8 @@ const initialSizeState: SizePriceState = {
 };
 
 const CreateProductScreen = () => {
-  const { id } = useLocalSearchParams();
-
-  console.log("ID:", id);
+  const { id: idString } = useLocalSearchParams();
+  const id = convertIdStringToFloat(idString);
 
   const isUpdating = !!id;
 
@@ -79,6 +81,25 @@ const CreateProductScreen = () => {
     sizePriceReducer,
     initialSizeState
   );
+
+  const { mutate: insertProduct } = useInsertProduct();
+  const { mutate: updateProduct } = useUpdateProduct();
+  const { mutate: deleteProduct } = useDeleteProduct(id);
+  const { data: productToUpdate } = useProduct(id);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    setName(productToUpdate.name);
+    setPizzaImage(productToUpdate.image || defaultImage);
+    Object.keys(productToUpdate.prices).forEach((size) => {
+      dispatch({
+        type: size as PizzaSize,
+        payload: productToUpdate.prices[size as PizzaSize].toString(),
+      });
+    });
+  }, [productToUpdate]);
+
   const onCreate = () => {
     if (!validateForm()) {
       console.log("Form is invalid", errors);
@@ -99,17 +120,25 @@ const CreateProductScreen = () => {
       XL: parseFloat(sizePrices.XL) || 0,
     };
     console.log("Product Created:", { name, numericPrices });
-    products.push({
-      id: products.length + 1,
-      name: name,
-      image: pizzaImage || defaultImage,
-      prices: numericPrices,
-    });
+    insertProduct(
+      {
+        name: name,
+        image: pizzaImage || defaultImage,
+        prices: numericPrices,
+      },
+      {
+        onSuccess: () => {
+          resetFields();
+          router.back();
+        },
+      }
+    );
   };
 
   const onSubmit = () => {
     if (isUpdating) {
       console.log("Updating Product");
+      onUpdate();
     } else {
       onCreate();
     }
@@ -135,18 +164,20 @@ const CreateProductScreen = () => {
       XL: parseFloat(sizePrices.XL) || 0,
     };
 
-    const productIndex = products.findIndex((p) => p.id === Number(id));
-    if (productIndex === -1) {
-      console.log("Product not found");
-      return;
-    }
-
-    products[productIndex] = {
-      id: Number(id),
-      name: name,
-      image: pizzaImage || defaultImage,
-      prices: numericPrices,
-    };
+    updateProduct(
+      {
+        id: id,
+        name: name,
+        image: pizzaImage || defaultImage,
+        prices: numericPrices,
+      },
+      {
+        onSuccess: (product) => {
+          resetFields();
+          router.back();
+        },
+      }
+    );
   };
 
   const validateForm = () => {
@@ -205,13 +236,8 @@ const CreateProductScreen = () => {
   };
 
   const handleDelete = () => {
-    const productIndex = products.findIndex((p) => p.id === Number(id));
-    if (productIndex === -1) {
-      console.log("Product not found");
-      return;
-    }
-
-    products.splice(productIndex, 1);
+    deleteProduct();
+    router.replace("/(admin)/menu");
   };
 
   useEffect(() => {

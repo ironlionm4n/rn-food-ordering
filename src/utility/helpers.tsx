@@ -9,7 +9,7 @@ export const formatDecimalInput = (text: string) => {
   } else if (parts.length === 2) {
     text = `${parts[0]}.${parts[1].slice(0, 2)}`;
   }
-
+  // Convert to a float and format to two decimal places
   return text;
 };
 
@@ -19,4 +19,12 @@ export const determineHoursAgo = (timeString: string) => {
   const diff = now.getTime() - time.getTime();
   const hours = Math.floor(diff / 1000 / 60 / 60);
   return hours;
+};
+
+export const convertIdStringToFloat = (
+  idString: string | string[] | undefined
+) => {
+  return parseFloat(
+    typeof idString === "string" ? idString : idString?.[0] ?? ""
+  );
 };
