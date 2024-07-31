@@ -1,24 +1,41 @@
-import { View, Text, StyleSheet, FlatList, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import orders from "@assets/data/orders";
 import OrderItemListItem from "@/components/OrderItemListItem";
 import OrderListItem from "@/components/OrderListItem";
-import { OrderStatusList } from "@/types";
+import { OrderStatus, OrderStatusList } from "@/types";
 import Colors from "@/constants/Colors";
+import { useOrderDetails, useUpdateOrderStatus } from "@/api/orders";
+import { convertIdStringToFloat } from "@/utility/helpers";
 
 const OrderDetailScreen = () => {
-  const { id } = useLocalSearchParams();
+  const { id: idString } = useLocalSearchParams();
+  const id = convertIdStringToFloat(idString);
+  const { data: order, error, isLoading } = useOrderDetails(id);
+  const { mutate: updateOrderStatus } = useUpdateOrderStatus();
 
-  const order = orders.find((o) => o.id.toString() === id);
+  const onUpdateOrderStatus = (status: string) => {
+    updateOrderStatus({ id: id, updatedFields: { status } });
+  };
 
-  if (!order) {
+  if (isLoading) {
+    return <ActivityIndicator />;
+  }
+
+  if (error || !order) {
     return <Text>Order not found!</Text>;
   }
 
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: "Order Details" }} />
-      <OrderListItem order={order} />
 
       <FlatList
         data={order.order_items}
@@ -26,12 +43,12 @@ const OrderDetailScreen = () => {
         contentContainerStyle={{ gap: 10 }}
         ListFooterComponent={() => (
           <>
-            <Text style={{ fontWeight: "bold" }}>Status</Text>
+            <Text style={{ fontWeight: "bold", color: "white" }}>Status</Text>
             <View style={{ flexDirection: "row", gap: 5 }}>
               {OrderStatusList.map((status) => (
                 <Pressable
                   key={status}
-                  onPress={() => console.warn("Update status")}
+                  onPress={() => onUpdateOrderStatus(status)}
                   style={{
                     borderColor: Colors.light.tint,
                     borderWidth: 1,

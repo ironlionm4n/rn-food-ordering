@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import { useProduct } from "@/api/products";
 import { convertIdStringToFloat } from "@/utility/helpers";
+import RemoteImage from "@/components/RemoteImage";
 
 const ProductDetailsScreen = () => {
   const { id: idString } = useLocalSearchParams();
@@ -59,8 +60,9 @@ const ProductDetailsScreen = () => {
           title: product?.name,
         }}
       />
-      <Image
-        source={{ uri: product.image || defaultImage }}
+      <RemoteImage
+        path={product?.image}
+        fallback={defaultImage}
         style={styles.image}
       />
       <View>

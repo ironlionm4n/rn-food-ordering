@@ -8,6 +8,7 @@ import { Link, Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { View, Text, StyleSheet, Image, Pressable } from "react-native";
 import { useProduct } from "@/api/products";
+import RemoteImage from "@/components/RemoteImage";
 
 const ProductDetailsScreen = () => {
   const { id: idString } = useLocalSearchParams();
@@ -27,7 +28,7 @@ const ProductDetailsScreen = () => {
     );
   }
 
-  const selectedPrice = product.prices[selectedSize];
+  const selectedPrice = product.prices?.[selectedSize];
 
   const addToCart = () => {
     onAddItem({
@@ -70,8 +71,9 @@ const ProductDetailsScreen = () => {
           title: product?.name,
         }}
       />
-      <Image
-        source={{ uri: product.image || defaultImage }}
+      <RemoteImage
+        path={product?.image}
+        fallback={defaultImage}
         style={styles.image}
       />
 

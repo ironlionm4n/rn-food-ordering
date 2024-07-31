@@ -29,6 +29,10 @@ import {
   useProduct,
   useUpdateProduct,
 } from "@/api/products";
+import { randomUUID } from "expo-crypto";
+import { supabase } from "@/lib/supabase";
+import * as FileSystem from "expo-file-system";
+import { decode } from "base64-arraybuffer";
 
 type SizePriceState = {
   S: string;
@@ -86,21 +90,29 @@ const CreateProductScreen = () => {
   const { mutate: updateProduct } = useUpdateProduct();
   const { mutate: deleteProduct } = useDeleteProduct(id);
   const { data: productToUpdate } = useProduct(id);
+  // console.log("Product to Update", productToUpdate);
 
   const router = useRouter();
 
   useEffect(() => {
-    setName(productToUpdate.name);
-    setPizzaImage(productToUpdate.image || defaultImage);
-    Object.keys(productToUpdate.prices).forEach((size) => {
-      dispatch({
-        type: size as PizzaSize,
-        payload: productToUpdate.prices[size as PizzaSize].toString(),
-      });
-    });
+    if (isUpdating && productToUpdate) {
+      setName(productToUpdate.name || "");
+      setPizzaImage(productToUpdate.image || defaultImage);
+
+      const prices = productToUpdate.prices as Record<PizzaSize, number>;
+      if (prices) {
+        Object.keys(prices).forEach((size) => {
+          const pizzaSize = size as PizzaSize;
+          dispatch({
+            type: size as PizzaSize,
+            payload: prices[pizzaSize]?.toString() || "",
+          });
+        });
+      }
+    }
   }, [productToUpdate]);
 
-  const onCreate = () => {
+  const onCreate = async () => {
     if (!validateForm()) {
       console.log("Form is invalid", errors);
       setShowToast(true);
@@ -119,11 +131,12 @@ const CreateProductScreen = () => {
       L: parseFloat(sizePrices.L) || 0,
       XL: parseFloat(sizePrices.XL) || 0,
     };
-    console.log("Product Created:", { name, numericPrices });
+    const imagePath = await uploadImage();
+    console.log("Image Path", imagePath);
     insertProduct(
       {
         name: name,
-        image: pizzaImage || defaultImage,
+        image: imagePath || defaultImage,
         prices: numericPrices,
       },
       {
@@ -144,7 +157,7 @@ const CreateProductScreen = () => {
     }
   };
 
-  const onUpdate = () => {
+  const onUpdate = async () => {
     if (!validateForm()) {
       console.log("Form is invalid", errors);
       setShowToast(true);
@@ -164,11 +177,13 @@ const CreateProductScreen = () => {
       XL: parseFloat(sizePrices.XL) || 0,
     };
 
+    const imagePath = await uploadImage();
+
     updateProduct(
       {
         id: id,
         name: name,
-        image: pizzaImage || defaultImage,
+        image: imagePath || defaultImage,
         prices: numericPrices,
       },
       {
@@ -219,6 +234,35 @@ const CreateProductScreen = () => {
 
     if (!result.canceled) {
       setPizzaImage(result.assets[0].uri);
+    }
+  };
+
+  const uploadImage = async () => {
+    if (!pizzaImage?.startsWith("file://")) {
+      return;
+    }
+
+    console.log("pizzaImage", pizzaImage);
+
+    const base64 = await FileSystem.readAsStringAsync(pizzaImage, {
+      encoding: "base64",
+    });
+
+    const filePath = `${randomUUID()}.png`;
+    const contentType = "image/png";
+    const { data, error } = await supabase.storage
+      .from("product-images")
+      .upload(filePath, decode(base64), { contentType });
+
+    console.log("uploadImage Data", data);
+
+    if (error) {
+      console.log("Error uploading image", error);
+      return;
+    }
+
+    if (data) {
+      return data.path;
     }
   };
 

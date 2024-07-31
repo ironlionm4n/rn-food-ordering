@@ -6,6 +6,7 @@ import { Tables } from "@/database.types";
 import products, { defaultImage } from "@assets/data/products";
 import Colors from "@/constants/Colors";
 import { PizzaSize, Product } from "@/types";
+import RemoteImage from "./RemoteImage";
 
 type ProductListItemProps = {
   product: Tables<"products">;
@@ -14,15 +15,16 @@ type ProductListItemProps = {
 // asChild is a prop that is passed to the Link component, which is a boolean that determines whether the child component should be rendered as a child of the Link component or not. If asChild is true, the child component is rendered as a child of the Link component. If asChild is false, the child component is rendered as a sibling of the Link component. The default value of asChild is false.
 const ProductListItem = ({ product }: ProductListItemProps) => {
   const segments = useSegments();
-  console.log(segments);
   return (
     <Link href={`${segments[0]}/menu/${product.id}`} asChild>
       <Pressable style={styles.productContainer}>
-        <Image
-          source={{ uri: product.image ?? defaultImage }}
-          resizeMode="contain"
+        <RemoteImage
+          path={product.image}
+          fallback={defaultImage}
           style={styles.image}
+          resizeMode="contain"
         />
+
         <View style={styles.productDetails}>
           <Text style={styles.name}>{product.name}</Text>
           {product.prices &&

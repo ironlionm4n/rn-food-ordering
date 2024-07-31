@@ -1,28 +1,53 @@
 import { View, Text, StyleSheet, Image } from "react-native";
 import React from "react";
 import Colors from "../constants/Colors";
-import { OrderItem } from "../types";
+import { OrderItem, PizzaSize } from "../types";
 import { defaultImage } from "@assets/data/products";
+import { Tables } from "@/database.types";
+import RemoteImage from "./RemoteImage";
 
 type OrderItemListItemProps = {
-  item: OrderItem;
+  item: { products: Tables<"products"> } & Tables<"order_items">;
 };
 
 const OrderItemListItem = ({ item }: OrderItemListItemProps) => {
+  console.log("OrderItemListItem", item);
   return (
     <View style={styles.container}>
-      <Image
-        source={{ uri: item.products.image || defaultImage }}
-        style={styles.image}
-        resizeMode="contain"
-      />
       <View style={{ flex: 1 }}>
-        <Text style={styles.title}>{item.products.name}</Text>
-        <View style={styles.subtitleContainer}>
-          <Text style={styles.price}>
-            ${item.products.prices[item.size].toFixed(2)}
-          </Text>
-          <Text>Size: {item.size}</Text>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "flex-start",
+            alignItems: "center",
+          }}
+        >
+          <RemoteImage
+            path={item.products.image}
+            fallback={defaultImage}
+            style={styles.image}
+            resizeMode="contain"
+          />
+          <View style={styles.subtitleContainer}>
+            <Text style={styles.title}>{item.products.name}</Text>
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 10,
+              }}
+            >
+              <Text style={styles.price}>
+                $
+                {(item.products?.prices as Record<string, number>)[
+                  item.size
+                ]?.toFixed(2)}
+              </Text>
+              <Text>Size: {item.size}</Text>
+            </View>
+          </View>
         </View>
       </View>
       <View style={styles.quantitySelector}>
@@ -36,7 +61,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "white",
     borderRadius: 10,
-    padding: 5,
+    paddingRight: 18,
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
@@ -53,8 +78,10 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   subtitleContainer: {
-    flexDirection: "row",
-    gap: 5,
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 10,
   },
   quantitySelector: {
     flexDirection: "row",
@@ -64,8 +91,7 @@ const styles = StyleSheet.create({
   },
   quantity: {
     fontWeight: "500",
-    fontSize: 22,
-    paddingRight: 10,
+    fontSize: 18,
   },
   price: {
     color: Colors.light.tint,

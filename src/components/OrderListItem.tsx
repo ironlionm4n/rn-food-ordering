@@ -4,14 +4,16 @@ import React from "react";
 import { Order } from "@/types";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { Tables } from "@/database.types";
 
 dayjs.extend(relativeTime);
 
 type OrderListItemProps = {
-  order: Order;
+  order: Tables<"orders">;
 };
 
 const OrderListItem = ({ order }: OrderListItemProps) => {
+  console.log("OrderListItem", order);
   const segments = useSegments();
   return (
     <Link href={`/${segments[0]}/orders/${order.id}`} asChild>

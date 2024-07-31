@@ -18,7 +18,7 @@ import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import CartListItem from "@/components/CartListItem";
 
 const CartScreen = () => {
-  const { items, total } = useCart();
+  const { items, total, checkout } = useCart();
 
   if (items.length === 0) {
     return (
@@ -49,7 +49,7 @@ const CartScreen = () => {
       {/* Use a light status bar on iOS to account for the black space above the modal */}
       <StatusBar style={Platform.OS === "ios" ? "light" : "auto"} />
       <Text style={styles.total}>Total: ${total.toFixed(2)}</Text>
-      <Button text="Checkout" />
+      <Button text="Checkout" onPress={checkout} />
     </View>
   );
 };
